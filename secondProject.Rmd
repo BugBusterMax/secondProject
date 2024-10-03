@@ -4,27 +4,131 @@ author: "Zirui"
 date: "2024-10-03"
 output: html_document
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+## 1.1 (Q1)
+```{r}
+library(tidyverse)
+library(Stat2Data)
+data("Hawks")
+hawksSmall<-drop_na(select(Hawks,Age,Day,Month,Year,CaptureTime,Species,Wing,Weight,Tail))
+dim(hawksSmall)
+head(hawksSmall,5)
 ```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+## 1.1 (Q2)
+```{r}
+ggplot(hawksSmall,aes(x=Weight))+geom_histogram(binwidth = 10,fill="blue",color="black")+labs(title = "Histogram of Hawks' Weights",x="Weight(g)",y="Count")+theme_minimal()
 ```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+## 1.1 (Q3)
+```{r}
+ggplot(hawksSmall,aes(x=Tail))+geom_density(adjust=0.5,fill="lightgreen",alpha=0.7)+labs(title="Density Plot of Tail Length(adjust=0.5)",x="Tail Length(mm)",y="Density")+theme_minimal()
+ggplot(hawksSmall,aes(x=Tail))+geom_density(adjust=2,fill="lightgreen",alpha=0.7)+labs(title="Density Plot of Tail Length(adjust=2)",x="Tail Length(mm)",y="Density")+theme_minimal()
 ```
+## 1.1 (Q4)
+```{r}
+ggplot(hawksSmall,aes(x=Tail,color=Species))+geom_density(adjust=2)+labs(title="Density Plot of Tail Length by Species",x="Tail Length(mm)",y="Density")+scale_color_manual(values = c("red","green","blue"))+theme_minimal()
+```
+## 1.1 (Q5)
+```{r}
+ggplot(hawksSmall,aes(x=Tail,y=Species,fill=Species))+geom_violin()+labs(title = "Violin Plot of Tail Length by Species",x="Tail Length(mm)",y="Species")+theme_minimal()
+```
+## 1.1 (Q6)
+```{r}
+ggplot(hawksSmall,aes(x=Tail,y=Weight,color=Species,shape=Species))+geom_point(size=3)+labs(title = "Scatter Plot of Wing Length vs Weight by Species",x="Tail Length(mm)",y="Weight(g)")+theme_minimal()
+```
+## 1.1 (Q7)
+```{r}
+ggplot(hawksSmall,aes(x=Tail,y=Weight))+geom_point(aes(color=Species),size=3,alpha=0.7)+geom_smooth(aes(color=Species),method = "lm")+facet_wrap(~ Species,scales="free")+labs(title="Weight vs. Tail Length by Species",x="Tail Length(mm)",y="Weight(g)")+theme_minimal()+theme(legend.position="bottom")
+```
+## 1.1 (Q8)
+```{r}
+heaviest_hawk <- hawksSmall %>% filter(Weight == max(Weight)) %>% select(Tail, Weight)
+ggplot(hawksSmall, aes(x = Tail, y = Weight, color = Species)) + geom_point() + labs(title = "Scatter Plot of Weight vs Tail Length", x = "Tail Length (mm)", y = "Weight (mm)") + annotate("text", x = heaviest_hawk$Tail, y = heaviest_hawk$Weight - 100, label = "heaviest hawk", color = "black") + geom_curve(aes(x = heaviest_hawk$Tail, y = heaviest_hawk$Weight - 150, xend = heaviest_hawk$Tail, yend = heaviest_hawk$Weight), arrow = arrow(length = unit(0.2, "cm")), color = "black", curvature = 0.2)
+```
+## 2.1 (Q1)
+```{r}
+choose(8,3)
+```
+$$
+P(Z = z) = \binom{22}{z} \cdot \left( \frac{3}{10} \right)^z \cdot \left( \frac{7}{10} \right)^{22 - z}
+$$
+## 2.1 (Q2)
+```{r}
+prob_red_spheres <- function(z) {
+  n <- 22
+  p_red <- 3 / 10
+  prob <- dbinom(z, size = n, prob = p_red)
+  return(prob)
+}
+prob_red_spheres(10)
+```
+## 2.1 (Q3)
+```{r}
+library(dplyr)
+prob_red_spheres <- function(z) {
+  n <- 22
+  p_red <- 3 / 10
+  prob <- dbinom(z, size = n, prob = p_red)
+  return(prob)
+}
+prob_by_num_reds <- data.frame(
+  num_reds = 1:22,
+  prob = sapply(1:22, prob_red_spheres)
+)
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+prob_by_num_reds %>% head(3)
+```
+## 2.1 (Q4)
+```{r}
+library(ggplot2)
+library(dplyr)
+prob_red_spheres <- function(z) {
+  n <- 22
+  p_red <- 3 / 10
+  prob <- dbinom(z, size = n, prob = p_red)
+  return(prob)
+}
+prob_by_num_reds <- data.frame(
+  num_reds = 1:22,
+  prob = sapply(1:22, prob_red_spheres)
+)
+ggplot(prob_by_num_reds, aes(x = num_reds, y = prob)) + geom_line(color = "blue") + labs(title = "Probability of Selecting Red Spheres", x = "Number of Red Spheres", y = "Probability") + theme_minimal()
+```
+## 2.1 (Q5)
+```{r}
+sample(10,22,replace=TRUE)
+set.seed(0)
+for(i in 1:5){
+  print(sample(100,5,replace=FALSE))
+}
+set.seed(1)
+print(sample(100,5,replace=FALSE))
+set.seed(1)
+print(sample(100,5,replace=FALSE))
+set.seed(1)
+print(sample(100,5,replace=FALSE))
+set.seed(0)
+for(i in 1:5){
+  print(sample(100,5,replace=FALSE))
+}
+itermap <- function(.x, .f) {
+  result <- list()
+  for (item in .x) {
+  result <- c(result, list(.f(item)))
+  }
+  return(result)
+}
+itermap( c(1,2,3), function(x){ return(c(x,x^2)) } )
+itermap_dbl <- function(.x, .f) {
+  result <- numeric(length(.x))
+  for (i in 1:length(.x)) {
+  result[i] <- .f(.x[[i]])
+  }
+  return(result)
+}
+itermap_dbl( c(1,2,3), function(x){ return(x^3) } )
+num_trials<-1000
+set.seed(0)
+sampling_with_replacement_simulation<-data.frame(trial=1:num_trials) %>% mutate(sample_balls = itermap(.x=trial, function(x){sample(10,22, replace = TRUE)}))
+
+sampling_with_replacement_simulation <- sampling_with_replacement_simulation %>% mutate(num_reds = itermap_dbl(sample_balls, function(x) { sum(x <= 3) }))
+head(sampling_with_replacement_simulation)
+```
