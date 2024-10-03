@@ -132,3 +132,56 @@ sampling_with_replacement_simulation<-data.frame(trial=1:num_trials) %>% mutate(
 sampling_with_replacement_simulation <- sampling_with_replacement_simulation %>% mutate(num_reds = itermap_dbl(sample_balls, function(x) { sum(x <= 3) }))
 head(sampling_with_replacement_simulation)
 ```
+## 2.1 (Q6)
+```{r}
+num_reds_in_simulation<-sampling_with_replacement_simulation %>% pull(num_reds) 
+prob_by_num_reds<-prob_by_num_reds %>% mutate(predicted_prob=itermap_dbl(.x=num_reds, function(.x) sum(num_reds_in_simulation==.x))/num_trials)
+head(prob_by_num_reds)
+```
+## 2.1 (Q7)
+```{r}
+prob_by_num_reds %>% rename(TheoreticalProbability=prob, EstimatedProbability=predicted_prob) %>% ggplot() + geom_line(aes(x=num_reds, y=TheoreticalProbability)) + geom_line(aes(x=num_reds, y=EstimatedProbability), linetype='dashed') + geom_point(aes(x=num_reds, y=EstimatedProbability)) + theme_bw() + xlab("Number of reds") + ylab("Probabilities")
+```
+## 2.2 (Q1)
+```{r}
+library(dplyr)
+set.seed(123)
+num_trials <- 1000
+sample_size <- 10
+num_reds <- 50
+num_blues <- 30
+num_greens <- 20
+simulate_one_trial <- function() {
+  all_balls <- c(rep("Red", num_reds), rep("Blue", num_blues), rep("Green", num_greens))
+  sample_balls <- sample(all_balls, sample_size, replace = FALSE)
+  num_reds_in_sample <- sum(sample_balls == "Red")
+  num_blues_in_sample <- sum(sample_balls == "Blue")
+  num_greens_in_sample <- sum(sample_balls == "Green")
+  return(c(num_reds_in_sample, num_blues_in_sample, num_greens_in_sample))
+}
+simulation_results <- replicate(num_trials, simulate_one_trial(), simplify = TRUE)
+simulation_results_df <- data.frame(
+  num_reds = simulation_results[1, ],
+  num_blues = simulation_results[2, ],
+  num_greens = simulation_results[3, ]
+)
+simulation_results_df <- simulation_results_df %>%
+  mutate(min_count = pmin(num_reds, num_blues, num_greens))
+proportion_missing_colors <- mean(simulation_results_df$min_count == 0)
+proportion_missing_colors
+```
+## 2.2 (Q2)
+```{r}
+total_subsets <- choose(100, 10)
+missing_red <- choose(50, 10)
+missing_blue <- choose(70, 10)
+missing_green <- choose(80, 10)
+missing_red_and_blue <- choose(20, 10)
+missing_red_and_green <- choose(30, 10)
+missing_blue_and_green <- choose(50, 10)
+subsets_missing_one_or_more <- (missing_red + missing_blue + missing_green) - 
+                               (missing_red_and_blue + missing_red_and_green + missing_blue_and_green)
+
+prob_missing_one_or_more <- subsets_missing_one_or_more / total_subsets
+prob_missing_one_or_more
+```
